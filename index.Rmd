@@ -133,17 +133,6 @@ stops_in_berlin <- stops %>%
 #                      start_time = start_time,
 #                      end_time = end_time)$hull$area
 
-lichtenberg <- shape_districts_new %>% 
-  filter(NAME == "Lichtenberg")
-treptow <- shape_districts_new %>% 
-  filter(NAME == "Treptow-Köpenick")
-
-stops_one_district <- stops %>% 
-  mutate(inside_district = st_within( geometry, treptow )) %>% 
-  mutate(inside_district = as.numeric( inside_district )) %>% 
-  filter(inside_district == 1) %>% 
-  select(stop_id, stop_name)
-
 ##############################################################
 #
 #   CALCULATE ISOCHRONES
@@ -215,6 +204,50 @@ stops_area_berlin <- stops_area %>%
   select(-inside_berlin) %>% 
   mutate(id = paste(name, ": ", round(ic_area)))
 ```
+
+Column {data-width=100}
+-------------------------------------
+    
+### About Isochrones
+
+WTF are you doing here?
+The [gtfsrouter](https://atfutures.github.io/gtfs-router/) package allows us to calculate all stations reachable within a specified time period from a nominated station ([isochrones](https://atfutures.github.io/gtfs-router/reference/gtfs_isochrone.html)). We use the hull polygon as an indicator for the city area reachable. The time of interest is Monday from 07:20 – 08:00.
+
+
+### Chart 1
+    
+```{r}
+ic_einstein <- gtfs_isochrone(gtfs,
+                      from = "Berlin, Helmholtzstr.",
+                      start_time = 18 * 3600,
+                      end_time = 18 * 3600 + 1800)
+p <- plot(ic_einstein)
+p
+```
+    
+### Chart 3
+    
+```{r}
+tm_shape(shape_districts_new) +
+  tm_polygons(alpha = 0,
+              popup.vars = c("area" = "AREA")) +
+  tm_shape(stops_area_berlin) +
+  tm_dots(col = "ic_area",
+          id = "name",
+          popup.vars = c("area" = "ic_area"),
+          size = 0.07,
+          border.lwd = 0.3,
+          legend.hist = TRUE,
+          n = 15,
+          title = "isochrone area [km^2]") +
+  tm_view(bbox = shape_berlin)
+```
+
+
+Column {data-width=300}
+-------------------------------------
+   
+### area size of the hull enclosing the routed points
 
 ```{r}
 ##############################################################
