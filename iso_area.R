@@ -187,3 +187,21 @@ tm_shape(shape_districts_new) +
           n = 15,
           title = "isochrone area [km^2]") +
   tm_view(bbox = shape_berlin)
+
+
+ic_einstein <- gtfs_isochrone(gtfs,
+                              from = "Berlin, Helmholtzstr.",
+                              start_time = 18 * 3600,
+                              end_time = 18 * 3600 + 1800)
+
+tm_shape(ic_einstein$hull) + 
+  tm_polygons(col = "red",
+              alpha = 0.2,
+              border.col = "red") +
+  tm_shape(ic_einstein$routes) +
+  tm_lines() +
+  tm_shape(ic_einstein$end_points) +
+  tm_dots(col = "red") + 
+  tm_shape(ic_einstein$start_point) + 
+  tm_dots(col = "green")
+
