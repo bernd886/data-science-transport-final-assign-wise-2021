@@ -21,7 +21,11 @@ tmap_mode("view")
 
 last time {data-icon="fa-hourglass-half"}
 =====================================
-Last time we took a look at the GTFS data of the VBB and the output data of car-free zone MATSim simulation. You saw visualisations of:
+[Last time](https://bernd886.github.io/data-science-transport-mid-assign-wise-2021/) we took a look at the GTFS data of the VBB and the output data of car-free zone MATSim simulation.
+We stuck to the data sets. This time you will see plots showing results of :
+
+- GTFS: routing on the whole pt network (last time only BVG and S-Bahn)
+- MATSim: emissions distribution
 
 TO EDIT
 
@@ -595,20 +599,29 @@ tm_shape(joined_count) +
   # tm_dots(size=0.001, col="N2O", alpha=0.1)
 ```
 
-END {data-icon="fa-pencil"}
+sources {data-icon="fa-external-link-alt"}
 =====================================
 ***
 
-https://rstudio.github.io/leaflet/
 
-- Interactive panning/zooming
-
-- Compose maps using arbitrary combinations of map tiles, markers, polygons, lines, popups, and GeoJSON.
-
-- Create maps right from the R console or RStudio
-
-- Embed maps in knitr/R Markdown documents and Shiny apps
-
-- Easily render Spatial objects from the sp package, or data frames with latitude/longitude columns
-
-- Use map bounds and mouse events to drive Shiny logic
+* VBB GTFS data:
+  + [Website](https://www.vbb.de/unsere-themen/vbbdigital/api-entwicklerinfos/datensaetze)
+  + [use data set](http://transitfeeds.com/p/verkehrsverbund-berlin-brandenburg/213/20201228) on transitfeeds
+* Berlin shape files: [Senatsverwaltung für Stadtentwicklung und Wohnen](https://web.archive.org/web/20190624123508/https://www.stadtentwicklung.berlin.de/planen/basisdaten_stadtentwicklung/lor/de/download.shtml)
+* GTFS routing:
+  + [tidytransit](https://tidytransit.r-transit.org/) package
+  + [gtfs-router](https://atfutures.github.io/gtfs-router/) package
+* helpful references:
+  + sf reference: [bind](https://r-spatial.github.io/sf/reference/bind.html), [st_write](https://r-spatial.github.io/sf/reference/st_write.html), [st_read](https://r-spatial.github.io/sf/reference/st_read.html)
+  + [Units of Measurement for R Vectors](https://cran.r-project.org/web/packages/units/vignettes/units.html)
+  + tidyverse dplyr: [distinct](https://dplyr.tidyverse.org/reference/distinct.html)
+* LITERATUR?!
+  + [Stadtentwicklungsplan Zentren 3](https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/2011-07-31_StEP_Zentren3.pdf) (2011)
+  + [Stadtentwicklungsplan Zentren 2030](https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/StEP_Zentren_2030.pdf) (2019)
+  + [Nahverkehrsplan 2019-2023](https://www.berlin.de/sen/uvk/verkehr/verkehrsplanung/oeffentlicher-personennahverkehr/nahverkehrsplan/) (2019)
+* plotting:
+  + datacamp: [Custom palette in tmap](https://campus.datacamp.com/courses/visualizing-geospatial-data-in-r/raster-data-and-color?ex=9)
+  + [Leaflet-providers preview](https://leaflet-extras.github.io/leaflet-providers/preview/)
+  + tlorusso: [tmap](https://tlorusso.github.io/geodata_workshop/tmap_package)
+  + rdocumentation: [tm_basemap](https://www.rdocumentation.org/packages/tmap/versions/3.0/topics/tm_basemap)
+  + tm_view: [Options for the interactive tmap viewer](https://rdrr.io/cran/tmap/man/tm_view.html)

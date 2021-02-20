@@ -254,29 +254,3 @@ n_of_stations_valid <- tt %>%
 
 percent_stations_valid <- n_of_stations_valid / n_of_stations * 100
 percent_stations_valid <- round(percent_stations_valid, 2)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
