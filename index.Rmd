@@ -21,7 +21,7 @@ tmap_mode("view")
 
 last time {data-icon="fa-hourglass-half"}
 =====================================
-TEMPLATE BULLSHIT
+Last time we took a look at the GTFS data of the VBB and the output data of car-free zone MATSim simulation. You saw visualisations of:
 
 TO EDIT
 
@@ -485,7 +485,118 @@ tm_basemap(leaflet::providers$CartoDB.DarkMatter) +
   tm_view(bbox = shape_center)
 ```
 
+Hao 1 {data-icon="fa-burn"}
+=====================================
 
+Column {data-width=100}
+-------------------------------------
+
+### PUT TEXT HERE OR NOT
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vel turpis lacus. Vivamus enim magna, euismod sit amet mi nec, malesuada euismod nulla. Phasellus non sem euismod, porta neque sit amet, aliquam lorem. Aenean at gravida magna. Morbi magna lorem, vestibulum in elit a, maximus lacinia massa.
+
+Phasellus non tincidunt erat, sit amet volutpat sem. Sed maximus purus ut libero rutrum fringilla. Nullam lobortis ullamcorper purus lacinia eleifend.
+
+In dictum enim urna, at ultricies lectus luctus id. Aenean vulputate lectus urna, pellentesque ultrices libero feugiat eu.
+
+Column {data-width=300}
+-------------------------------------
+
+```{r, include = FALSE}
+berlin_bezirke <- st_read("~/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/shp-bezirke/bezirke_berlin.shp")
+
+berlin_emissions <-read_delim("~/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/berlin-v5.5-1pct.emissionsgrid_Berlin_PlanA.csv", 
+                            delim="\t",
+                            # sep = "\t",
+                            locale=locale(decimal_mark = "."),
+                            col_types = cols(
+                              x = col_double(),
+                              y = col_double()
+                            ))
+```
+
+### PUT TEXT HERE OR NOT
+
+```{r}
+map = read_sf("~/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/shp-bezirke/bezirke_berlin.shp")
+
+berlin_emissions_sf <- st_as_sf(berlin_emissions, coords = c('x', 'y'), crs = st_crs(map))
+
+berlin_emissions_bezirke <- berlin_emissions_sf %>% mutate(
+  intersection = as.integer(st_intersects(geometry, map))
+  , area = if_else(is.na(intersection), '', map$Name[intersection])
+) 
+
+# ----
+joined <- st_join(berlin_bezirke, berlin_emissions_bezirke)
+
+# Plot1
+joined_count <- joined %>%
+  group_by(Name) %>%
+  summarise(sum=sum(PM2_5_non_exhaust)) %>%
+  #summarise(sum=sum(N2O)) %>%
+  #summarise(sum=sum(NH3)) %>%
+  ungroup() %>%
+  mutate(col_value=sum/n()) %>% 
+  #mutate(col_value=1/sum*n())
+  rename("Particular Matter" = "col_value")
+  
+tm_shape(joined_count) +
+  # tm_borders() +
+  tm_polygons(col="Name") +
+  tm_shape(joined_count) +
+  # tm_dots(size="size_value", col="col_value")
+  tm_symbols(size="sum", col="Particular Matter")
+```
+
+
+Hao 2 {data-icon="fa-car"}
+=====================================
+
+Column {data-width=100}
+-------------------------------------
+
+### PUT TEXT HERE OR NOT
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vel turpis lacus. Vivamus enim magna, euismod sit amet mi nec, malesuada euismod nulla. Phasellus non sem euismod, porta neque sit amet, aliquam lorem. Aenean at gravida magna. Morbi magna lorem, vestibulum in elit a, maximus lacinia massa.
+
+Phasellus non tincidunt erat, sit amet volutpat sem. Sed maximus purus ut libero rutrum fringilla. Nullam lobortis ullamcorper purus lacinia eleifend.
+
+In dictum enim urna, at ultricies lectus luctus id. Aenean vulputate lectus urna, pellentesque ultrices libero feugiat eu.
+
+Column {data-width=300}
+-------------------------------------
+
+### PUT TEXT HERE OR NOT
+
+```{r}
+# Plot2
+joined_count <- joined %>%
+  group_by(Name) %>%
+  #summarise(sum=sum(PM2_5_non_exhaust)) %>%
+  summarise(sum=sum(N2O)) %>%
+  #summarise(sum=sum(NH3)) %>%
+  ungroup() %>%
+  #mutate(col_value=sum/n())
+  mutate(col_value=1/sum*n())
+# view(joined_count)
+
+berlin_emissions_bezirke <- berlin_emissions_bezirke %>% 
+  rename("Nitrous Oxide (N2O)" = "N2O")
+  
+tmap_mode("plot")
+tm_shape(joined_count) +
+  # tm_borders() +
+  tm_polygons() +
+  # tm_polygons(col="col_value") +
+  # tm_dots(size="size_value", col="col_value")
+  tm_shape(berlin_emissions_bezirke) +
+  tm_dots(size=0.01, col="Nitrous Oxide (N2O)", border.lwd=NA)
+  # tm_dots(size=0.001, col="N2O", alpha=0.1)
+```
+
+END {data-icon="fa-pencil"}
+=====================================
 ***
 
 https://rstudio.github.io/leaflet/
