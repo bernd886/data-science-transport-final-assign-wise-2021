@@ -131,7 +131,7 @@ joined_count <- joined %>%
 berlin_emissions_bezirke <- berlin_emissions_bezirke %>% 
   rename("Nitrous Oxide (N2O)" = "N2O")
   
-tmap_mode("view")
+tmap_mode("plot")
 tm_shape(joined_count) +
   # tm_borders() +
   tm_polygons() +
