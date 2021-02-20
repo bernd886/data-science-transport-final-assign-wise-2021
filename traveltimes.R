@@ -202,7 +202,9 @@ tm_basemap(leaflet::providers$CartoDB.DarkMatter) +
   tm_shape(shape_districts_new) + 
   tm_polygons(alpha = 0,
               lwd = 1.5,
-              border.col = "white") +
+              border.col = "white",
+              popup.vars = c("area" = "AREA")
+              ) +
   tm_shape(shape_center) +
   tm_polygons(alpha = 0.2,
               col = "red",
@@ -216,24 +218,42 @@ tm_basemap(leaflet::providers$CartoDB.DarkMatter) +
           id = "from",
           palette = rdylgn,
           title = "traveltime [min]",
-          popup.vars=c("from" = "from",
-                       "to" = "to", 
-                       "traveltime" = "tt",
-                       "departure at" = "departure",
-                       "arrival at" = "arrival",
-                       "number of transfers" = "transfers")) +
+          popup.vars = c("to" = "to", 
+                         "traveltime" = "tt",
+                         "departure at" = "departure",
+                         "arrival at" = "arrival",
+                         "number of transfers" = "transfers")) +
   tm_view(bbox = shape_berlin)
 
-tm_shape(shape_center) +
-  tm_rgb() +
-  tm_shape(crimes_city) +
-  tm_dots(size = 0.2) +
-  tm_facets(by = " Crime.type" )
 
+##############################################################
+#
+#   DEGREE OF FULLFILMENT
+#
+##############################################################
 
+n_of_stations <- tt %>%
+  mutate(inside_berlin = st_within( geometry, shape_berlin )) %>% 
+  mutate(inside_berlin = !is.na( as.numeric( inside_berlin ))) %>% 
+  filter(inside_berlin == TRUE) %>% 
+  mutate(outside_center = st_within( geometry, shape_center )) %>% 
+  mutate(outside_center = is.na( as.numeric( outside_center ))) %>% 
+  filter(outside_center == TRUE) %>%
+  nrow()
 
+n_of_stations_valid <- tt %>% 
+  mutate(inside_berlin = st_within( geometry, shape_berlin )) %>% 
+  mutate(inside_berlin = !is.na( as.numeric( inside_berlin ))) %>% 
+  filter(inside_berlin == TRUE) %>% 
+  mutate(outside_center = st_within( geometry, shape_center )) %>% 
+  mutate(outside_center = is.na( as.numeric( outside_center ))) %>% 
+  filter(outside_center == TRUE) %>%
+  filter(tt <= 60 * as_units("min")) %>% 
+  filter(transfers <= 2) %>% 
+  nrow()
 
-
+percent_stations_valid <- n_of_stations_valid / n_of_stations * 100
+percent_stations_valid <- round(percent_stations_valid, 2)
 
 
 

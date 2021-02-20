@@ -21,6 +21,9 @@ tmap_mode("view")
 
 last time {data-icon="fa-hourglass-half"}
 =====================================
+TEMPLATE BULLSHIT
+
+TO EDIT
 
 ADD DATA SOURCES!!!!!!!!!!!!!!!
 
@@ -138,7 +141,7 @@ stops_in_berlin <- stops %>%
 #   CALCULATE ISOCHRONES
 #
 ##############################################################
-# # the following code calculates the isochrones
+# # the following code calculates the isochrones (inefficent, ~ 15h)
 # # instead of running the code, we read in the pre-calculated file
 
 # stops_ic_area <- vector(mode = "double")
@@ -208,13 +211,20 @@ stops_area_berlin <- stops_area %>%
 Column {data-width=100}
 -------------------------------------
     
-### About Isochrones
+### Approach {data-height=200}
 
-WTF are you doing here?
-The [gtfsrouter](https://atfutures.github.io/gtfs-router/) package allows us to calculate all stations reachable within a specified time period from a nominated station ([isochrones](https://atfutures.github.io/gtfs-router/reference/gtfs_isochrone.html)). We use the hull polygon as an indicator for the city area reachable. The time of interest is Monday from 07:20 – 08:00.
+The [gtfsrouter](https://atfutures.github.io/gtfs-router/) package allows us to calculate all stations reachable within a specified time period from a nominated station ([isochrones](https://atfutures.github.io/gtfs-router/reference/gtfs_isochrone.html)). We use the hull polygon as an indicator for the city area reachable.
 
+See below for a isochrone plot of a 30min Monday work–home trip starting from Helmholtzstraße at 18:00.
 
-### 30min IC home trip (18:00) from Helmholtzstr.
+We try to simulate a home–work trip in the morning rush hour arriving at 08:00. Assuming a five minute walk at beginning and end of the trip, we limit the GTFS data to Monday (2021-01-18) and calculate the isochrones for a 40min time range. By that we want to get all reachable stations by local transport (< 60min, [PBefG §8 (1)](https://www.gesetze-im-internet.de/pbefg/__8.html)) and rate the station inside the network.
+
+- reachablity of possible work places
+- calculation with all transport agencies
+-- domination of the hull area in 40 min time range by reachable fanning out long-distance transport
+- no weighting of the reachable area
+
+### 30min IC home trip (18:00) from Helmholtzstr. {data-height=100}
     
 ```{r}
 ic_einstein <- gtfs_isochrone(gtfs,
@@ -234,25 +244,6 @@ tm_basemap(leaflet::providers$OpenStreetMap.DE) +
   tm_shape(ic_einstein$start_point) + 
   tm_dots(col = "green")
 ```
-    
-### Chart 3
-    
-```{r}
-tm_shape(shape_districts_new) +
-  tm_polygons(alpha = 0,
-              popup.vars = c("area" = "AREA")) +
-  tm_shape(stops_area_berlin) +
-  tm_dots(col = "ic_area",
-          id = "name",
-          popup.vars = c("area" = "ic_area"),
-          size = 0.07,
-          border.lwd = 0.3,
-          legend.hist = TRUE,
-          n = 15,
-          title = "isochrone area [km^2]") +
-  tm_view(bbox = shape_berlin)
-```
-
 
 Column {data-width=300}
 -------------------------------------
@@ -392,25 +383,62 @@ tt <- tt %>%
 Column {data-width=100}
 -------------------------------------
     
-### About 
+### approach {data-height=400}
 
-WTF are you doing here?
+The [local transport plan](https://www.berlin.de/sen/uvk/verkehr/verkehrsplanung/oeffentlicher-personennahverkehr/nahverkehrsplan/) (p. 106) sets targets for the connectivity standards. Different categories of center areas (see [StEP](https://stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/de/zentren/zentren2030/index.shtml), p. 45) have to be reachable within a certain time and with a maximum number of transfer. This should hold for 95% of the stations.
 
-### Chart 1
-    
+Based on the GTFS data, we try to recreate the result of the monitoring ([NVP Anlage 1](https://www.berlin.de/sen/uvk/_assets/verkehr/verkehrsplanung/oeffentlicher-personennahverkehr/nahverkehrsplan/broschure_nvp_2019_anlage_1.pdf), p. 12), mentioning a degree of fulfillment of 99,7% for the central areas.
+
+* destination:
+  + City West (Zoo/ Kurfürstendamm)
+  + Mitte (Potsdamer Platz/ Alexanderplatz)
+* max. tt: 60min
+* max. transfers: 2
+
+From a more detailed [display of the area](https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/2011-07-31_StEP_Zentren3.pdf) (p. 39), we create a shape file enclosing the associated stations. The [tidytransit](https://tidytransit.r-transit.org/) package let's us [calculate](https://tidytransit.r-transit.org/reference/travel_times.html) the shortest travel time for all stations to any of a specified set of stations. For that `arrival` has to be set to `TRUE`.
+
+We try to simulate a home–work trip in the morning rush hour arriving at 08:00. Assuming five minute walking at beginning and end of the trip, we limit the GTFS data to Monday (2021-01-18) and calculate the shortest travel times in a 90min time range ending at 07:55.
+
+### Percent of all berlin stations fullfill the connectivity standard according to the GTFS data {data-height=200}
+
 ```{r}
+##############################################################
+#
+#   DEGREE OF FULLFILMENT
+#
+##############################################################
+
+n_of_stations <- tt %>%
+  mutate(inside_berlin = st_within( geometry, shape_berlin )) %>% 
+  mutate(inside_berlin = !is.na( as.numeric( inside_berlin ))) %>% 
+  filter(inside_berlin == TRUE) %>% 
+  mutate(outside_center = st_within( geometry, shape_center )) %>% 
+  mutate(outside_center = is.na( as.numeric( outside_center ))) %>% 
+  filter(outside_center == TRUE) %>%
+  nrow()
+
+n_of_stations_valid <- tt %>% 
+  mutate(inside_berlin = st_within( geometry, shape_berlin )) %>% 
+  mutate(inside_berlin = !is.na( as.numeric( inside_berlin ))) %>% 
+  filter(inside_berlin == TRUE) %>% 
+  mutate(outside_center = st_within( geometry, shape_center )) %>% 
+  mutate(outside_center = is.na( as.numeric( outside_center ))) %>% 
+  filter(outside_center == TRUE) %>%
+  filter(tt <= 60 * as_units("min")) %>% 
+  filter(transfers <= 2) %>% 
+  nrow()
+
+percent_stations_valid <- n_of_stations_valid / n_of_stations * 100
+percent_stations_valid <- round(percent_stations_valid, 2)
+
+valueBox(paste(percent_stations_valid, "%"), icon = "fa-crosshairs")
 ```
     
-### Chart 3
-    
-```{r}
-```
-
 
 Column {data-width=300}
 -------------------------------------
    
-### Chart 2
+### shortest travel time to one of the stations inside City West or Mitte
 
 ```{r}
 ##############################################################
@@ -432,7 +460,9 @@ tm_basemap(leaflet::providers$CartoDB.DarkMatter) +
   tm_shape(shape_districts_new) + 
   tm_polygons(alpha = 0,
               lwd = 1.5,
-              border.col = "white") +
+              border.col = "white",
+              popup.vars = c("area" = "AREA")
+              ) +
   tm_shape(shape_center) +
   tm_polygons(alpha = 0.2,
               col = "red",
@@ -446,12 +476,12 @@ tm_basemap(leaflet::providers$CartoDB.DarkMatter) +
           id = "from",
           palette = rdylgn,
           title = "traveltime [min]",
-          popup.vars=c("from" = "from",
-                       "to" = "to", 
-                       "traveltime" = "tt",
-                       "departure at" = "departure",
-                       "arrival at" = "arrival",
-                       "number of transfers" = "transfers")) +
+          popup.vars = c("to" = "to", 
+                         "traveltime" = "tt",
+                         "departure at" = "departure",
+                         "arrival at" = "arrival",
+                         "number of transfers" = "transfers")
+          ) +
   tm_view(bbox = shape_center)
 ```
 
