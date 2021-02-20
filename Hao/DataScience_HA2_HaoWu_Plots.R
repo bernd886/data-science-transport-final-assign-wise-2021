@@ -4,9 +4,9 @@ library(sf)
 library(tmap)
 tmap_mode("view")
 
-berlin_bezirke <- st_read("/home/misax/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/shp-bezirke/bezirke_berlin.shp")
+berlin_bezirke <- st_read("~/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/shp-bezirke/bezirke_berlin.shp")
 
-berlin_emissions <-read_delim("/home/misax/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/berlin-v5.5-1pct.emissionsgrid_Berlin_PlanA.csv", 
+berlin_emissions <-read_delim("~/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/berlin-v5.5-1pct.emissionsgrid_Berlin_PlanA.csv", 
                             delim="\t",
                             # sep = "\t",
                             locale=locale(decimal_mark = "."),
@@ -39,7 +39,7 @@ berlin_emissions <-read_delim("/home/misax/Documents/Uni/Master/DataScienceTrans
 
 # ----
 library(sf)
-map = read_sf("/home/misax/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/shp-bezirke/bezirke_berlin.shp")
+map = read_sf("~/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/shp-bezirke/bezirke_berlin.shp")
 
 berlin_emissions_sf <- st_as_sf(berlin_emissions, coords = c('x', 'y'), crs = st_crs(map))
 #view(berlin_emissions_sf)
