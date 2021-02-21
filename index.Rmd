@@ -80,20 +80,16 @@ gtfs <- extract_gtfs(file) %>% gtfs_timetable(day = 2)
 #   SET TIMES
 #
 ##############################################################
+
 start_time <- 7 * 3600 + 1200
 end_time <- 8 * 3600
-
-# create isochrone
-# ic <- gtfs_isochrone (gtfs,
-#                       from = from,
-#                       start_time = start_time,
-#                       end_time = end_time)
 
 ##############################################################
 #
 #   CREATE STOPS SF OBJECT
 #
 ##############################################################
+
 stops <- st_as_sf(gtfs$stops,
                    coords = c("stop_lon", "stop_lat"),
                    crs = 4326) %>% 
@@ -104,6 +100,7 @@ stops <- st_as_sf(gtfs$stops,
 #   SHAPE DISTRICTS NEW (+ area)
 #
 ##############################################################
+
 setwd_data()
 shape_districts_new <- read_sf(dsn = "LOR_SHP_2019-1", layer = "Planungsraum_EPSG_25833")
 setwd_work()
@@ -124,6 +121,24 @@ shape_berlin <- st_union(shape_districts_new)
 
 ##############################################################
 #
+#   SHAPE CENTER AREAS
+#
+##############################################################
+# "Zentrentragender Stadtraum mit höchster / hoher Urbanität"
+# of Zentrumsbereichskernen
+# see page 39: https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/2011-07-31_StEP_Zentren3.pdf
+# or page 45 (less detailed): https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/StEP_Zentren_2030.pdf
+# recreated with QGis
+
+shape_center <- read_sf(dsn = "shape_center_areas", layer = "center_areas") %>%
+  mutate(name = c("east", "west")) %>%
+  select(name)
+
+shape_center_east <- shape_center %>% filter(name == "east")
+shape_center_west <- shape_center %>% filter(name == "west")
+
+##############################################################
+#
 #   SPECIFIC SHAPES AND STOPS
 #
 ##############################################################
@@ -133,18 +148,12 @@ stops_in_berlin <- stops %>%
   mutate(inside_berlin = !is.na( as.numeric( inside_berlin ))) %>% 
   filter(inside_berlin == TRUE)
 
-# get isochrone area
-# ic = gtfs_isochrone (gtfs,
-#                      from = "Berlin, Sowjetisches Ehrenmal",
-#                      #from_is_id = TRUE,
-#                      start_time = start_time,
-#                      end_time = end_time)$hull$area
-
 ##############################################################
 #
 #   CALCULATE ISOCHRONES
 #
 ##############################################################
+
 # # the following code calculates the isochrones (inefficent, ~ 15h)
 # # instead of running the code, we read in the pre-calculated file
 
@@ -219,18 +228,21 @@ Column {data-width=100}
 
 The [gtfsrouter](https://atfutures.github.io/gtfs-router/) package allows us to calculate all stations reachable within a specified time period from a nominated station ([isochrones](https://atfutures.github.io/gtfs-router/reference/gtfs_isochrone.html)). We use the hull polygon as an indicator for the city area reachable.
 
-See below for a isochrone plot of a 30min Monday work–home trip starting from Helmholtzstraße at 18:00.
+See below for an isochrone plot of a 30min Monday work–home trip starting from Helmholtzstraße at 18:00.
 
-We try to simulate a home–work trip in the morning rush hour arriving at 08:00. Assuming a five minute walk at beginning and end of the trip, we limit the GTFS data to Monday (2021-01-18) and calculate the isochrones for a 40min time range. By that we want to get all reachable stations by local transport (< 60min, [PBefG §8 (1)](https://www.gesetze-im-internet.de/pbefg/__8.html)) and rate the station inside the network.
+We tried to simulate a home–work trip in the morning rush hour arriving at 08:00. Assuming a five minute walk at beginning and end of the trip, we limited the GTFS data to Monday (2021-01-18) and calculated the isochrones for a 40min time range. By that we wanted to get all reachable stations by local transport (< 60min, [PBefG §8 (1)](https://www.gesetze-im-internet.de/pbefg/__8.html)) and rate the station inside the network (reachability of possible work places).
 
-- reachablity of possible work places
-- calculation with all transport agencies
--- domination of the hull area in 40 min time range by reachable fanning out long-distance transport
-- no weighting of the reachable area
+**Some critique:** Since we've done the routing with all transport agencies and a large time range, the hull area is even more dominated by reachable fanning out long-distance transport. Additionally the area is not weighted by any form of utility.
 
 ### 30min IC home trip (18:00) from Helmholtzstr. {data-height=100}
     
 ```{r}
+##############################################################
+#
+#   Helmholtzstr. ISOCHRONE
+#
+##############################################################
+
 ic_einstein <- gtfs_isochrone(gtfs,
                               from = "Berlin, Helmholtzstr.",
                               start_time = 18 * 3600,
@@ -273,37 +285,20 @@ tm_shape(shape_districts_new) +
           legend.hist = TRUE,
           n = 15,
           title = "isochrone area [km^2]") +
-  tm_view(bbox = shape_berlin)
+  tm_view(bbox = shape_center)
 ```
 
 
-traveltimes to center {data-icon="fa-stopwatch"}
+travel times to center {data-icon="fa-stopwatch"}
 =====================================
 
 ```{r, include = FALSE}
 ##############################################################
 #
-#   SHAPE CENTER AREAS
-#
-##############################################################
-# "Zentrentragender Stadtraum mit höchster / hoher Urbanität"
-# of Zentrumsbereichskernen
-# see page 39: https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/2011-07-31_StEP_Zentren3.pdf
-# or page 45 (less detailed): https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/StEP_Zentren_2030.pdf
-# recreated with QGis
-
-shape_center <- read_sf(dsn = "shape_center_areas", layer = "center_areas") %>% 
-  mutate(name = c("east", "west")) %>% 
-  select(name)
-
-shape_center_east <- shape_center %>% filter(name == "east")
-shape_center_west <- shape_center %>% filter(name == "west")
-
-##############################################################
-#
 #   READ GTFS DATA
 #
 ##############################################################
+
 # now we work with tidytransit
 # calculation of shortest tt from all station to specific ones is more convinent
 
@@ -319,6 +314,7 @@ stop_times_filtered <- filter_stop_times(gtfs, "2021-01-18", "06:00:00", "07:55:
 #   GET STOPS
 #
 ##############################################################
+
 stops <- st_as_sf(gtfs$stops, coords = c("stop_lon", "stop_lat"), crs = 4326) %>%
   st_transform(25833) %>% 
   select(stop_name) %>%
@@ -354,6 +350,7 @@ stops_center_west <- stops %>%
 #   TT calculation
 #
 ##############################################################
+
 # what are the tt to the center areas?
 # according to Nahverkehrsplan Berlin 2019-2023: ANlage 1 - Monitoringbericht (p. 12)
 # standard: tt_max = 3600, n_transfer_max = 2, n_realise_stations = 0.95
@@ -391,7 +388,7 @@ Column {data-width=100}
 
 The [local transport plan](https://www.berlin.de/sen/uvk/verkehr/verkehrsplanung/oeffentlicher-personennahverkehr/nahverkehrsplan/) (p. 106) sets targets for the connectivity standards. Different categories of center areas (see [StEP](https://stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/de/zentren/zentren2030/index.shtml), p. 45) have to be reachable within a certain time and with a maximum number of transfer. This should hold for 95% of the stations.
 
-Based on the GTFS data, we try to recreate the result of the monitoring ([NVP Anlage 1](https://www.berlin.de/sen/uvk/_assets/verkehr/verkehrsplanung/oeffentlicher-personennahverkehr/nahverkehrsplan/broschure_nvp_2019_anlage_1.pdf), p. 12), mentioning a degree of fulfillment of 99,7% for the central areas.
+Based on the GTFS data, we tried to recreate the result of the monitoring ([NVP Anlage 1](https://www.berlin.de/sen/uvk/_assets/verkehr/verkehrsplanung/oeffentlicher-personennahverkehr/nahverkehrsplan/broschure_nvp_2019_anlage_1.pdf), p. 12), mentioning a degree of fulfillment of 99,7% for the central areas.
 
 * destination:
   + City West (Zoo/ Kurfürstendamm)
@@ -399,9 +396,9 @@ Based on the GTFS data, we try to recreate the result of the monitoring ([NVP An
 * max. tt: 60min
 * max. transfers: 2
 
-From a more detailed [display of the area](https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/2011-07-31_StEP_Zentren3.pdf) (p. 39), we create a shape file enclosing the associated stations. The [tidytransit](https://tidytransit.r-transit.org/) package let's us [calculate](https://tidytransit.r-transit.org/reference/travel_times.html) the shortest travel time for all stations to any of a specified set of stations. For that `arrival` has to be set to `TRUE`.
+From a more detailed [illustration of the area](https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/2011-07-31_StEP_Zentren3.pdf) (p. 39), we created a shape file enclosing the associated stations. The [tidytransit](https://tidytransit.r-transit.org/) package let us [calculate](https://tidytransit.r-transit.org/reference/travel_times.html) the shortest travel time for all stations to any of a specified set of stations. For that `arrival` had to be set to `TRUE`.
 
-We try to simulate a home–work trip in the morning rush hour arriving at 08:00. Assuming five minute walking at beginning and end of the trip, we limit the GTFS data to Monday (2021-01-18) and calculate the shortest travel times in a 90min time range ending at 07:55.
+We wanted to simulate a home–work trip in the morning rush hour arriving at 08:00. Assuming five minute walking at beginning and end of the trip, we limited the GTFS data to Monday (2021-01-18) and calculated the shortest travel times in a 90min time range ending at 07:55.
 
 ### Percent of all berlin stations fullfill the connectivity standard according to the GTFS data {data-height=200}
 
@@ -615,7 +612,7 @@ sources {data-icon="fa-external-link-alt"}
   + sf reference: [bind](https://r-spatial.github.io/sf/reference/bind.html), [st_write](https://r-spatial.github.io/sf/reference/st_write.html), [st_read](https://r-spatial.github.io/sf/reference/st_read.html)
   + [Units of Measurement for R Vectors](https://cran.r-project.org/web/packages/units/vignettes/units.html)
   + tidyverse dplyr: [distinct](https://dplyr.tidyverse.org/reference/distinct.html)
-* LITERATUR?!
+* connectivity standards:
   + [Stadtentwicklungsplan Zentren 3](https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/2011-07-31_StEP_Zentren3.pdf) (2011)
   + [Stadtentwicklungsplan Zentren 2030](https://www.stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/download/zentren/StEP_Zentren_2030.pdf) (2019)
   + [Nahverkehrsplan 2019-2023](https://www.berlin.de/sen/uvk/verkehr/verkehrsplanung/oeffentlicher-personennahverkehr/nahverkehrsplan/) (2019)
