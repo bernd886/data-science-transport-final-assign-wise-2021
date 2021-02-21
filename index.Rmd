@@ -19,13 +19,13 @@ library(RColorBrewer)
 tmap_mode("view")
 ```
 
-last time {data-icon="fa-hourglass-half"}
+Intro {data-icon="fa-hourglass-half"}
 =====================================
 
 Column {data-width=100}
 -------------------------------------
 
-### text bla
+### Last Subject
 
 [Last time](https://bernd886.github.io/data-science-transport-mid-assign-wise-2021/) we took a look at the GTFS data of the VBB and the output data of car-free zone MATSim simulation.
 We stuck to the data sets. This time you will see plots showing results of :
@@ -36,11 +36,11 @@ We stuck to the data sets. This time you will see plots showing results of :
 Column {data-width=300}
 -------------------------------------
 
-### last time plots
+### Last Plots
 
 ![](last_time_all.jpg)
 
-isochrones {data-icon="fa-expand-arrows-alt"}
+Isochrones {data-icon="fa-expand-arrows-alt"}
 =====================================
 
 ```{r, include = FALSE}
@@ -219,7 +219,7 @@ We tried to simulate a home–work trip in the morning rush hour arriving at 08:
 
 **Some critique:** Since we've done the routing with all transport agencies and a large time range, the hull area is even more dominated by reachable fanning out long-distance transport. Additionally the area is not weighted by any form of utility.
 
-### 30min IC home trip (18:00) from Helmholtzstr. {data-height=100}
+### 30min IC Home Trip (18:00) from Helmholtzstr. {data-height=100}
     
 ```{r}
 ##############################################################
@@ -249,7 +249,7 @@ tm_basemap(leaflet::providers$OpenStreetMap.DE) +
 Column {data-width=300}
 -------------------------------------
    
-### area size of the hull enclosing the routed points
+### Area Size of the Hull Enclosing the Routed Points
 
 ```{r}
 ##############################################################
@@ -274,7 +274,7 @@ tm_shape(shape_districts_new) +
 ```
 
 
-travel times to center {data-icon="fa-stopwatch"}
+Travel Times to Center {data-icon="fa-stopwatch"}
 =====================================
 
 ```{r, include = FALSE}
@@ -369,7 +369,7 @@ tt <- tt %>%
 Column {data-width=100}
 -------------------------------------
     
-### approach {data-height=400}
+### Approach {data-height=400}
 
 The [local transport plan](https://www.berlin.de/sen/uvk/verkehr/verkehrsplanung/oeffentlicher-personennahverkehr/nahverkehrsplan/) (p. 106) sets targets for the connectivity standards. Different categories of center areas (see [StEP](https://stadtentwicklung.berlin.de/planen/stadtentwicklungsplanung/de/zentren/zentren2030/index.shtml), p. 45) have to be reachable within a certain time and with a maximum number of transfer. This should hold for 95% of the stations.
 
@@ -385,7 +385,7 @@ From a more detailed [illustration of the area](https://www.stadtentwicklung.ber
 
 We wanted to simulate a home–work trip in the morning rush hour arriving at 08:00. Assuming five minute walking at beginning and end of the trip, we limited the GTFS data to Monday (2021-01-18) and calculated the shortest travel times in a 90min time range ending at 07:55.
 
-### Percent of all berlin stations fullfill the connectivity standard according to the GTFS data {data-height=200}
+### Percent of All Berlin Stations Fullfill the Connectivity Standard According to the GTFS Data {data-height=200}
 
 ```{r}
 ##############################################################
@@ -424,7 +424,7 @@ valueBox(paste(percent_stations_valid, "%"), icon = "fa-crosshairs")
 Column {data-width=300}
 -------------------------------------
    
-### shortest travel time to one of the stations inside City West or Mitte
+### Shortest Travel Time to One of the Stations Inside City West or Mitte
 
 ```{r}
 ##############################################################
@@ -581,14 +581,14 @@ tm_shape(joined_count) +
   # tm_dots(size=0.001, col="N2O", alpha=0.1)
 ```
 
-sources {data-icon="fa-external-link-alt"}
+Sources {data-icon="fa-external-link-alt"}
 =====================================
-***
 
+### Sources and Usefull Links
 
 * VBB GTFS data:
   + [Website](https://www.vbb.de/unsere-themen/vbbdigital/api-entwicklerinfos/datensaetze)
-  + [use data set](http://transitfeeds.com/p/verkehrsverbund-berlin-brandenburg/213/20201228) on transitfeeds
+  + [used data set](http://transitfeeds.com/p/verkehrsverbund-berlin-brandenburg/213/20201228) on transitfeeds
 * Berlin shape files: [Senatsverwaltung für Stadtentwicklung und Wohnen](https://web.archive.org/web/20190624123508/https://www.stadtentwicklung.berlin.de/planen/basisdaten_stadtentwicklung/lor/de/download.shtml)
 * GTFS routing:
   + [tidytransit](https://tidytransit.r-transit.org/) package
