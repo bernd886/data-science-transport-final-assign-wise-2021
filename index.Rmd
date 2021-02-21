@@ -21,39 +21,24 @@ tmap_mode("view")
 
 last time {data-icon="fa-hourglass-half"}
 =====================================
+
+Column {data-width=100}
+-------------------------------------
+
+### text bla
+
 [Last time](https://bernd886.github.io/data-science-transport-mid-assign-wise-2021/) we took a look at the GTFS data of the VBB and the output data of car-free zone MATSim simulation.
 We stuck to the data sets. This time you will see plots showing results of :
 
 - GTFS: routing on the whole pt network (last time only BVG and S-Bahn)
 - MATSim: emissions distribution
 
-TO EDIT
+Column {data-width=300}
+-------------------------------------
 
-ADD DATA SOURCES!!!!!!!!!!!!!!!
+### last time plots
 
-- test1
-- test2
-
-### Chart 0
-```{r}
-
-library(leaflet)
-leaflet() %>%
-  addTiles() %>%
-  addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
-```
-
-### Chart 1
-
-```{r}
-# 1. Plot the dots themselves
-```
-
-### Cars
-
-```{r}
-knitr::kable(mtcars)
-```
+![](last_time_all.jpg)
 
 isochrones {data-icon="fa-expand-arrows-alt"}
 =====================================
