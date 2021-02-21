@@ -30,13 +30,15 @@ Column {data-width=100}
 [Last time](https://bernd886.github.io/data-science-transport-mid-assign-wise-2021/) we took a look at the GTFS data of the VBB and the output data of car-free zone MATSim simulation.
 We stuck to the data sets. This time you will see plots showing results of :
 
-- GTFS: routing on the whole pt network (last time only BVG and S-Bahn)
-- MATSim: emissions distribution
+- **GTFS:** routing on the whole pt network (last time only BVG and S-Bahn)
+- **MATSim:** emissions distribution
+
+For the raw files see the [Github page](https://github.com/bernd886/data-science-transport-final-assign-wise-2021).
 
 Column {data-width=300}
 -------------------------------------
 
-### Last Plots
+### Some of Last Time Plots
 
 ![](last_time_all.jpg)
 
@@ -471,22 +473,8 @@ tm_basemap(leaflet::providers$CartoDB.DarkMatter) +
   tm_view(bbox = shape_center)
 ```
 
-Hao 1 {data-icon="fa-burn"}
+Emission Analysis for Berlin {data-icon="fa-burn"}
 =====================================
-
-Column {data-width=100}
--------------------------------------
-
-### PUT TEXT HERE OR NOT
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vel turpis lacus. Vivamus enim magna, euismod sit amet mi nec, malesuada euismod nulla. Phasellus non sem euismod, porta neque sit amet, aliquam lorem. Aenean at gravida magna. Morbi magna lorem, vestibulum in elit a, maximus lacinia massa.
-
-Phasellus non tincidunt erat, sit amet volutpat sem. Sed maximus purus ut libero rutrum fringilla. Nullam lobortis ullamcorper purus lacinia eleifend.
-
-In dictum enim urna, at ultricies lectus luctus id. Aenean vulputate lectus urna, pellentesque ultrices libero feugiat eu.
-
-Column {data-width=300}
--------------------------------------
 
 ```{r, include = FALSE}
 berlin_bezirke <- st_read("~/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/shp-bezirke/bezirke_berlin.shp")
@@ -499,11 +487,7 @@ berlin_emissions <-read_delim("~/Documents/Uni/Master/DataScienceTransport/assig
                               x = col_double(),
                               y = col_double()
                             ))
-```
 
-### PUT TEXT HERE OR NOT
-
-```{r}
 map = read_sf("~/Documents/Uni/Master/DataScienceTransport/assignment_2/Hao/shp-bezirke/bezirke_berlin.shp")
 
 berlin_emissions_sf <- st_as_sf(berlin_emissions, coords = c('x', 'y'), crs = st_crs(map))
@@ -515,48 +499,62 @@ berlin_emissions_bezirke <- berlin_emissions_sf %>% mutate(
 
 # ----
 joined <- st_join(berlin_bezirke, berlin_emissions_bezirke)
-
-# Plot1
-joined_count <- joined %>%
-  group_by(Name) %>%
-  summarise(sum=sum(PM2_5_non_exhaust)) %>%
-  #summarise(sum=sum(N2O)) %>%
-  #summarise(sum=sum(NH3)) %>%
-  ungroup() %>%
-  mutate(col_value=sum/n()) %>% 
-  #mutate(col_value=1/sum*n())
-  rename("Particular Matter" = "col_value")
-  
-tm_shape(joined_count) +
-  # tm_borders() +
-  tm_polygons(col="Name") +
-  tm_shape(joined_count) +
-  # tm_dots(size="size_value", col="col_value")
-  tm_symbols(size="sum", col="Particular Matter")
 ```
 
-
-Hao 2 {data-icon="fa-car"}
-=====================================
 
 Column {data-width=100}
 -------------------------------------
 
-### PUT TEXT HERE OR NOT
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. In vel turpis lacus. Vivamus enim magna, euismod sit amet mi nec, malesuada euismod nulla. Phasellus non sem euismod, porta neque sit amet, aliquam lorem. Aenean at gravida magna. Morbi magna lorem, vestibulum in elit a, maximus lacinia massa.
-
-Phasellus non tincidunt erat, sit amet volutpat sem. Sed maximus purus ut libero rutrum fringilla. Nullam lobortis ullamcorper purus lacinia eleifend.
-
-In dictum enim urna, at ultricies lectus luctus id. Aenean vulputate lectus urna, pellentesque ultrices libero feugiat eu.
-
-Column {data-width=300}
--------------------------------------
-
-### PUT TEXT HERE OR NOT
+### Emission Level per Districts for Pollutants eg. NH3 & PM2.5 {data-height=400}
 
 ```{r}
-# Plot2
+
+# Plot1: PM2.5+NH3 ----
+joined_count_1 <- joined %>%
+  group_by(Name) %>%
+  summarise(sum=sum(PM2_5_non_exhaust)) %>%
+  #summarise(N2O_sum=sum(N2O)) %>%
+  #summarise(sum=sum(NH3)) %>%
+  ungroup() %>%
+  mutate(col_value=sum/n()) %>% 
+  #mutate(col_value=1/sum*n())
+  rename("Fine Particulate Matter_average" = "col_value")
+
+joined_count_2 <- joined %>%
+  group_by(Name) %>%
+  #summarise(sum=sum(PM2_5_non_exhaust)) %>%
+  #summarise(N2O_sum=sum(N2O)) %>%
+  summarise(NH3_sum=sum(NH3)) %>%
+  ungroup() %>%
+  mutate(col_value_2=NH3_sum/n()) %>% 
+  #mutate(col_value=1/sum*n())
+  rename("NH3(Ammonia)_average" = "col_value_2")
+
+tmap_mode("view")
+tm_shape(joined_count_2) +
+  # tm_borders() +
+  tm_polygons(col="NH3(Ammonia)_average", palette = "Blues") +  #Reds RdBu
+  tm_shape(joined_count_1) +
+  # tm_dots(size="size_value", col="col_value")
+  tm_bubbles(size="sum", col="Fine Particulate Matter_average")
+```
+
+### {data-height=100}
+
+**Size of the Dots:** Sum of Fine Particulate Matter for this district
+
+**Color of the Dots:** Average value of Fine Particulate Matter for this district
+
+**Color of the Districts:** Average value of NH3 for this district
+
+
+Column {data-width=100}
+-------------------------------------
+
+### The Local Distribution of the Pollutant N2O in Berlin {data-height=400}
+
+```{r}
+# Plot2 N2O ----
 joined_count <- joined %>%
   group_by(Name) %>%
   #summarise(sum=sum(PM2_5_non_exhaust)) %>%
@@ -565,21 +563,127 @@ joined_count <- joined %>%
   ungroup() %>%
   #mutate(col_value=sum/n())
   mutate(col_value=1/sum*n())
-# view(joined_count)
 
-berlin_emissions_bezirke <- berlin_emissions_bezirke %>% 
-  rename("Nitrous Oxide (N2O)" = "N2O")
-  
-tmap_mode("plot")
+berlin_emissions_bezirke_2 <- berlin_emissions_bezirke %>% 
+  rename("N2O(Nitrous Oxide)" = "N2O")
+
+tmap_mode("plot")  #tmap_mode("view")
 tm_shape(joined_count) +
-  # tm_borders() +
-  tm_polygons() +
+  tm_borders() +
+  # tm_polygons() +
   # tm_polygons(col="col_value") +
   # tm_dots(size="size_value", col="col_value")
-  tm_shape(berlin_emissions_bezirke) +
-  tm_dots(size=0.01, col="Nitrous Oxide (N2O)", border.lwd=NA)
-  # tm_dots(size=0.001, col="N2O", alpha=0.1)
+  tm_shape(berlin_emissions_bezirke_2) +
+  tm_dots(size=0.01, col="N2O(Nitrous Oxide)", border.lwd=NA)
+# tm_dots(size=0.001, col="N2O", alpha=0.1)
 ```
+
+### {data-height=100}
+
+**Dark Red:** high value of this pollutant.
+
+**Light Yellow:** low value of this pollutant.
+
+<span style="color: red;">Problem:</span> Emissions of Charlottenburg
+
+=> implement “Car-free Zone” transportation policy
+
+
+Routing for Vehicles {data-icon="fa-car"}
+=====================================
+
+Column {data-width=100}
+-------------------------------------
+
+### Background
+
+<span style="color: green;">Car-free Area</span> Policy: Only the residents can use their cars inside of the Car-free Area. Non-residents like workers are not allowed to drive inside of the Car-free Area.  
+
+Scenario: Please consider a worker who works inside our study area (Car-free Area). <span style="color: red;">The Red Dot</span> stands for his/her/their office location. This Person wants to go home after work.  
+
+In the <span style="color: blue;">Base case</span>: He/She can take any transportation mode for going back home. For example, driving by his/her car to get back home.  
+
+In the <span style="color: green;">Policy Case</span> (Car-free Area Case): He/She can not go back home by driving anymore. The alternatives can only be public transportation in most cases.
+
+
+Column {data-width=300}
+-------------------------------------
+
+```{r, include = FALSE}
+library(sfnetworks)
+library(tidygraph)
+library(TSP)
+tmap_mode("view")  # tmap_mode("plot")
+
+berlin_network <- sf::st_read(
+  dsn = "https://download.geofabrik.de/europe/germany/berlin-latest.osm.pbf", 
+  # dsn = "/Users/haowu/Workspace/R/DataScience_HA2/Berlin.osm.pbf",
+  # dsn = "https://download.geofabrik.de/europe/great-britain/england/greater-london-latest.osm.pbf", 
+  layer = "lines", 
+  # query = "SELECT * FROM lines WHERE (highway != 'NA') AND (highway != 'unclassified')",
+  query = "SELECT * FROM lines WHERE (highway = 'primary') OR (highway = 'secondary') AND (highway != 'NA') AND (highway != 'unclassified')",
+  # query = "SELECT * FROM lines WHERE (highway = 'primary') OR (highway = 'secondary') OR (highway = 'residential') AND (highway != 'NA') AND (highway != 'unclassified')",
+  stringsAsFactors = FALSE
+)
+```
+
+### Routing for Vehicles
+
+```{r}
+# net = as_sfnetwork(h2, directed = FALSE) %>%
+net = as_sfnetwork(berlin_network, directed = FALSE) %>%
+  st_transform(25833) %>%
+  activate("edges") %>%
+  mutate(weight = edge_length())
+
+# ----
+# How many edge types are there?
+types = net %>%
+  activate("edges") %>%
+  pull(highway) %>%
+  # filter(highway!=NA) %>%
+  # filter(!is.na(highway)) %>%
+  unique()
+
+# Randomly define a driving speed in m/s for each type.
+# With values between 18 and 30 km/hr.
+set.seed(1)
+speeds = runif(length(types), 18 * 1000 / 60 / 60, 30 * 1000 / 60 / 60)
+
+# Assign a speed to each edge based on its type.
+# Calculate travel time for each edge based on that.
+net = net %>%
+  activate("edges") %>%
+  group_by(highway) %>%
+  # mutate(speed = units::set_units(speeds[cur_group_id()], "m/s")) %>%
+  mutate(speed = units::set_units(speeds[cur_group_id()], "m/s")) %>%
+  mutate(time = weight / speed) %>%
+  ungroup()
+
+# ----
+net = activate(net, "nodes")
+
+p = net %>%
+  st_geometry() %>%
+  st_combine() %>%
+  st_centroid()
+
+iso = net %>%
+  # filter(node_distance_from(st_nearest_feature(p, net), weights = time) <= 600)
+  filter(node_distance_from(st_nearest_feature(p, net), weights = time) <= 2400)
+
+iso_poly = iso %>%
+  st_geometry() %>%
+  st_combine() %>%
+  st_convex_hull()
+
+###--
+tm_shape(st_as_sf(iso, "edges")) + tm_lines(col="highway", lwd = 5) +
+  tm_shape(st_as_sf(iso, "nodes")) + tm_dots(col="grey") + 
+  tm_shape(iso_poly) + tm_polygons(col="black", alpha=0.1) +
+  tm_shape(p) + tm_dots(col = "red", size=0.02)
+```
+
 
 Sources {data-icon="fa-external-link-alt"}
 =====================================
